@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { AgentStep, StepStatus } from "@/components/AgentStep";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GoalInput } from "@/components/GoalInput";
@@ -1046,20 +1047,17 @@ const Index = () => {
   }, [showFinalAnalysis]);
 
   return (
-    <div 
-      className="min-h-screen transition-colors duration-300"
-      style={{ 
-        backgroundColor: widgetConfig.backgroundColor,
-        fontFamily: widgetConfig.fontFamily,
-      }}
+    <div
+      className="min-h-screen bg-background text-foreground transition-colors duration-300"
+      style={{ fontFamily: widgetConfig.fontFamily }}
     >
       {/* Hero Section */}
       <div className="border-b" style={{ borderColor: `${widgetConfig.primaryColor}40` }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
           <div className="text-center animate-fade-in">
-            <div 
+            <div
               className="inline-flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded border text-xs sm:text-sm mb-3 sm:mb-4"
-              style={{ 
+              style={{
                 backgroundColor: `${widgetConfig.primaryColor}20`,
                 borderColor: `${widgetConfig.primaryColor}40`,
                 color: widgetConfig.primaryColor
@@ -1068,10 +1066,10 @@ const Index = () => {
               <Network className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs sm:text-sm">{widgetConfig.brandName || "GOAP Multi-Agent System"}</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold mb-2 sm:mb-3 px-2" style={{ color: "#f5f5f5" }}>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold mb-2 sm:mb-3 px-2 text-foreground">
               {widgetConfig.title}
             </h1>
-            <p className="text-xs sm:text-sm max-w-xl mx-auto px-4 mb-3" style={{ color: "#a3a3a3" }}>
+            <p className="text-xs sm:text-sm max-w-xl mx-auto px-4 mb-3 text-muted-foreground">
               {widgetConfig.description}
             </p>
             <div className="flex justify-center gap-2 flex-wrap">
@@ -1118,6 +1116,7 @@ const Index = () => {
                 <span className="hidden sm:inline">{showCustomizer ? "Close" : "Create Widget"}</span>
                 <span className="sm:hidden">{showCustomizer ? "Close" : "Widget"}</span>
               </Button>
+              <ThemeToggle />
             </div>
           </div>
         </div>
@@ -1196,8 +1195,8 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <Sparkles className="w-5 h-5 animate-spin" style={{ color: widgetConfig.primaryColor }} />
               <div>
-                <h3 className="font-medium" style={{ color: "#f5f5f5" }}>Planning Research Workflow</h3>
-                <p className="text-sm" style={{ color: "#a3a3a3" }}>
+                <h3 className="font-medium text-foreground">Planning Research Workflow</h3>
+                <p className="text-sm text-muted-foreground">
                   Analyzing objective, identifying preconditions, calculating optimal action sequence...
                 </p>
               </div>
@@ -1258,8 +1257,8 @@ const Index = () => {
                 <RotateCcw className="w-4 h-4" />
                 New Research
               </Button>
-              <div className="text-xs sm:text-sm flex-1 min-w-0 text-center px-4" style={{ color: "#a3a3a3" }}>
-                <span className="font-medium" style={{ color: "#f5f5f5" }}>Objective:</span> <span className="break-words">{userGoal}</span>
+              <div className="text-xs sm:text-sm flex-1 min-w-0 text-center px-4 text-muted-foreground">
+                <span className="font-medium text-foreground">Objective:</span> <span className="break-words">{userGoal}</span>
               </div>
               <div className="w-[120px]" />
             </div>
@@ -1324,7 +1323,7 @@ const Index = () => {
                   <div className="text-2xl font-semibold mb-1" style={{ color: widgetConfig.primaryColor }}>
                     {steps.filter((s) => s.status === "completed").length}
                   </div>
-                  <div className="text-xs" style={{ color: "#a3a3a3" }}>Completed</div>
+                  <div className="text-xs text-muted-foreground">Completed</div>
                 </div>
                 <div 
                   className="border p-4 text-center"
@@ -1337,7 +1336,7 @@ const Index = () => {
                   <div className="text-2xl font-semibold mb-1" style={{ color: widgetConfig.primaryColor }}>
                     {steps.filter((s) => s.status === "active").length}
                   </div>
-                  <div className="text-xs" style={{ color: "#a3a3a3" }}>Active</div>
+                  <div className="text-xs text-muted-foreground">Active</div>
                 </div>
                 <div 
                   className="border p-4 text-center"
@@ -1347,10 +1346,10 @@ const Index = () => {
                     borderRadius: widgetConfig.borderRadius,
                   }}
                 >
-                  <div className="text-2xl font-semibold mb-1" style={{ color: "#737373" }}>
+                  <div className="text-2xl font-semibold mb-1 text-muted-foreground">
                     {steps.filter((s) => s.status === "pending").length}
                   </div>
-                  <div className="text-xs" style={{ color: "#a3a3a3" }}>Pending</div>
+                  <div className="text-xs text-muted-foreground">Pending</div>
                 </div>
               </div>
             )}
@@ -1384,31 +1383,31 @@ const Index = () => {
                         Final Research Report
                         <CheckCircle2 className="w-5 h-5" />
                       </h3>
-                      <p className="text-sm mb-4" style={{ color: "#a3a3a3" }}>
+                      <p className="text-sm mb-4 text-muted-foreground">
                         Comprehensive analysis generated by multi-agent GOAP research system
                       </p>
-                      
+
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
-                        <div className="rounded p-3" style={{ backgroundColor: `${widgetConfig.backgroundColor}80` }}>
-                          <div className="text-xs mb-1" style={{ color: "#a3a3a3" }}>Total Steps</div>
-                          <div className="text-xl font-semibold" style={{ color: "#f5f5f5" }}>{steps.length}</div>
+                        <div className="rounded p-3 bg-card">
+                          <div className="text-xs mb-1 text-muted-foreground">Total Steps</div>
+                          <div className="text-xl font-semibold text-foreground">{steps.length}</div>
                         </div>
-                        <div className="rounded p-3" style={{ backgroundColor: `${widgetConfig.backgroundColor}80` }}>
-                          <div className="text-xs mb-1" style={{ color: "#a3a3a3" }}>Data Points</div>
-                          <div className="text-xl font-semibold" style={{ color: "#f5f5f5" }}>
+                        <div className="rounded p-3 bg-card">
+                          <div className="text-xs mb-1 text-muted-foreground">Data Points</div>
+                          <div className="text-xl font-semibold text-foreground">
                             {steps.reduce((acc, step) => acc + (step.data?.length || 0), 0)}
                           </div>
                         </div>
-                        <div className="rounded p-3" style={{ backgroundColor: `${widgetConfig.backgroundColor}80` }}>
-                          <div className="text-xs mb-1" style={{ color: "#a3a3a3" }}>Confidence</div>
+                        <div className="rounded p-3 bg-card">
+                          <div className="text-xs mb-1 text-muted-foreground">Confidence</div>
                           <div className="text-xl font-semibold" style={{ color: widgetConfig.accentColor }}>94%</div>
                         </div>
-                        <div className="rounded p-3" style={{ backgroundColor: `${widgetConfig.backgroundColor}80` }}>
-                          <div className="text-xs mb-1 flex items-center gap-1" style={{ color: "#a3a3a3" }}>
+                        <div className="rounded p-3 bg-card">
+                          <div className="text-xs mb-1 flex items-center gap-1 text-muted-foreground">
                             <Clock className="w-3 h-3" />
                             Duration
                           </div>
-                          <div className="text-xl font-semibold" style={{ color: "#f5f5f5" }}>
+                          <div className="text-xl font-semibold text-foreground">
                             {Math.round(steps.length * 3.5)}s
                           </div>
                         </div>

@@ -25,10 +25,18 @@ export const StateAssessmentCard = ({
   const currentStateEntries = Object.entries(currentState);
   const goalStateEntries = Object.entries(goalState);
 
-  // Calculate progress percentage
-  const completedCount = currentStateEntries.filter(([_, value]) => value === true).length;
-  const totalCount = goalStateEntries.length;
-  const progressPercentage = Math.round((completedCount / totalCount) * 100);
+  // Progress = goal-state entries actually achieved by currentState.
+  // (Counting every `true` in currentState breaks when currentState has
+  //  more fields than goalState — e.g., 8 progress flags + 2 goal fields
+  //  rendered as "8/2 = 400%".)
+  const completedCount = goalStateEntries.filter(
+    ([key, goalValue]) => currentState[key] === goalValue,
+  ).length;
+  const totalCount = Math.max(goalStateEntries.length, 1);
+  const progressPercentage = Math.min(
+    100,
+    Math.round((completedCount / totalCount) * 100),
+  );
 
   // Animate state entries appearing one by one
   useEffect(() => {
@@ -217,52 +225,67 @@ export const StateAssessmentCard = ({
           </div>
         </div>
 
-        {/* State Transitions */}
-        <div className="pt-2 border-t">
-          <div className="flex items-center gap-2 mb-2">
-            <ArrowRight className="w-4 h-4" style={{ color: primaryColor }} />
-            <h4 className="text-sm font-semibold">State Transitions</h4>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            {currentStateEntries.slice(0, 3).map(([key, currentValue], index) => {
-              const goalValue = goalState[key];
-              const isTransitioning = currentValue !== goalValue;
-              const isVisible = visibleStates.includes(key);
-              
-              return (
-                <div
-                  key={key}
-                  className={`
-                    p-2 rounded-lg border bg-card transition-all duration-500
-                    ${!isVisible ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}
-                  `}
-                  style={{ animationDelay: `${(index + currentStateEntries.length) * 100}ms` }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono font-medium">
-                      {key.replace(/_/g, ' ')}
-                    </span>
-                    {isTransitioning && (
-                      <Zap className="w-3 h-3 text-yellow-500 animate-pulse" />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {String(currentValue)}
-                    </Badge>
-                    <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                    <Badge 
-                      className="text-xs"
-                      style={{ backgroundColor: accentColor, color: 'white' }}
+        {/* State Transitions — iterate GOAL keys so we never render
+            "undefined" for current-only flags. Show outstanding (not-yet-
+            matching) transitions first, capped at 3. */}
+        {(() => {
+          const transitions = goalStateEntries
+            .map(([key, goalValue]) => ({
+              key,
+              currentValue: currentState[key],
+              goalValue,
+              isTransitioning: currentState[key] !== goalValue,
+            }))
+            .sort((a, b) => Number(b.isTransitioning) - Number(a.isTransitioning))
+            .slice(0, 3);
+          if (transitions.length === 0) return null;
+          return (
+            <div className="pt-2 border-t">
+              <div className="flex items-center gap-2 mb-2">
+                <ArrowRight className="w-4 h-4" style={{ color: primaryColor }} />
+                <h4 className="text-sm font-semibold">State Transitions</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {transitions.map(({ key, currentValue, goalValue, isTransitioning }, index) => {
+                  const isVisible = visibleStates.includes(key);
+                  const currentLabel =
+                    currentValue === undefined ? 'pending' : String(currentValue);
+                  return (
+                    <div
+                      key={key}
+                      className={`
+                        p-2 rounded-lg border bg-card transition-all duration-500
+                        ${!isVisible ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}
+                      `}
+                      style={{ animationDelay: `${(index + currentStateEntries.length) * 100}ms` }}
                     >
-                      {String(goalValue)}
-                    </Badge>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-mono font-medium">
+                          {key.replace(/_/g, ' ')}
+                        </span>
+                        {isTransitioning && (
+                          <Zap className="w-3 h-3 text-yellow-500 animate-pulse" />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {currentLabel}
+                        </Badge>
+                        <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                        <Badge
+                          className="text-xs"
+                          style={{ backgroundColor: accentColor, color: 'white' }}
+                        >
+                          {String(goalValue)}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* State Gaps - Animated List */}
         {stateGaps.length > 0 && (

@@ -7,7 +7,71 @@ All colors MUST be HSL.
 */
 
 @layer base {
+  /* ADR-103: light theme is now the default `:root` palette; the
+   * existing dark palette was moved into `.dark { ... }` below. With
+   * `darkMode: ["class"]` in tailwind.config and `<ThemeProvider
+   * attribute="class">` in App.tsx, the html element gets `class="dark"`
+   * when the user (or system) is in dark mode. Default visitors still
+   * see dark because App.tsx sets `defaultTheme="dark"`. */
   :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 262 83% 70%;
+
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 0 0% 9%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 240 5% 96%;
+    --accent-foreground: 0 0% 9%;
+    --accent-glow: 240 5% 90%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 262 83% 58%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 240 5% 96%;
+    --sidebar-foreground: 240 4% 46%;
+    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 92%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 240 6% 90%;
+    --sidebar-ring: 262 83% 58%;
+
+    /* Success colors for completed states */
+    --success: 142 76% 36%;
+    --success-foreground: 142 76% 95%;
+
+    /* Custom design tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(262 83% 65%), hsl(262 83% 58%));
+    --gradient-accent: linear-gradient(135deg, hsl(240 5% 96%), hsl(240 5% 92%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(240 5% 98%));
+
+    --shadow-glow: 0 0 30px hsl(262 83% 58% / 0.15);
+    --shadow-accent-glow: 0 0 20px hsl(262 83% 58% / 0.1);
+    --shadow-card: 0 4px 20px hsl(240 6% 50% / 0.1);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
     --background: 0 0% 10%;
     --foreground: 0 0% 95%;
 
@@ -38,8 +102,6 @@ All colors MUST be HSL.
     --input: 0 0% 22%;
     --ring: 0 0% 50%;
 
-    --radius: 0.5rem;
-
     --sidebar-background: 0 0% 12%;
     --sidebar-foreground: 0 0% 60%;
     --sidebar-primary: 0 0% 50%;
@@ -49,20 +111,15 @@ All colors MUST be HSL.
     --sidebar-border: 0 0% 22%;
     --sidebar-ring: 0 0% 50%;
 
-    /* Success colors for completed states */
-    --success: 142 76% 36%;
-    --success-foreground: 142 76% 95%;
-
-    /* Custom design tokens */
+    /* Success/destructive shared with :root; redefining gradients +
+     * shadows so dark mode keeps its richer ambience. */
     --gradient-primary: linear-gradient(135deg, hsl(0 0% 20%), hsl(0 0% 15%));
     --gradient-accent: linear-gradient(135deg, hsl(0 0% 25%), hsl(0 0% 20%));
     --gradient-card: linear-gradient(180deg, hsl(0 0% 16%), hsl(0 0% 14%));
-    
+
     --shadow-glow: 0 0 30px hsl(0 0% 0% / 0.4);
     --shadow-accent-glow: 0 0 20px hsl(0 0% 0% / 0.3);
     --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.5);
-
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Widget embed overrides */

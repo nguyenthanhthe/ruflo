@@ -250,6 +250,11 @@ export const GoalInput = ({ onSubmit, isPlanning, onAdvancedSettings, onConfigUp
             </>
           )}
         </Button>
+        {!goal.trim() && !isPlanning && (
+          <p className="text-[10px] sm:text-xs text-muted-foreground text-center -mt-2">
+            Type a goal above or pick a category to begin
+          </p>
+        )}
       </form>
     </div>
   );
