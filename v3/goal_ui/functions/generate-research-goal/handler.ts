@@ -19,7 +19,8 @@
  * to operators.
  */
 import { z } from 'zod';
-import { wrapUserInput } from '../_lib/sanitize';
+import { IdentifierSchema } from '@claude-flow/security';
+import { wrapUserInput, UserPromptInputSchema } from '../_lib/sanitize';
 import { callLlmWithTool, isLlmAvailable } from '../_lib/llm';
 
 const ToolOutputSchema = z.object({
@@ -91,8 +92,25 @@ export async function generateResearchGoalHandler(
   req: GenerateResearchGoalRequest,
 ): Promise<HandlerResult> {
   const { category, customContext } = req;
-  if (typeof category !== 'string' || category.trim() === '') {
-    return { status: 400, body: { error: 'category is required (string)' } };
+  // R-1.3: Validate via shared IdentifierSchema from @claude-flow/security.
+  // Allows our known category slugs (`finance`, `ai-ml`, etc.) and rejects
+  // strings with shell metacharacters or whitespace — which would never be
+  // legitimate categories anyway.
+  const categoryValidated = IdentifierSchema.safeParse(category);
+  if (!categoryValidated.success) {
+    return {
+      status: 400,
+      body: { error: `category must be a valid identifier: ${categoryValidated.error.issues[0]?.message ?? 'invalid'}` },
+    };
+  }
+  if (customContext !== undefined && customContext !== null) {
+    const ctxValidated = UserPromptInputSchema.safeParse(customContext);
+    if (!ctxValidated.success) {
+      return {
+        status: 400,
+        body: { error: `customContext invalid: ${ctxValidated.error.issues[0]?.message ?? 'invalid'}` },
+      };
+    }
   }
 
   // Mock mode — no upstream credentials → return canned goals so the

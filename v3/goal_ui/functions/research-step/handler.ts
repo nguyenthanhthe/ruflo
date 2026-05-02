@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import { wrapUserInput } from '../_lib/sanitize';
+import { wrapUserInput, UserPromptInputSchema } from '../_lib/sanitize';
 import { callLlmWithTool, isLlmAvailable } from '../_lib/llm';
 
 interface ResearchDataItem {
@@ -77,8 +77,21 @@ export async function researchStepHandler(
   req: ResearchStepRequest,
 ): Promise<HandlerResult> {
   const { goal, stepTitle, stepDescription } = req;
-  if (typeof goal !== 'string' || typeof stepTitle !== 'string') {
-    return { status: 400, body: { error: 'goal and stepTitle are required (strings)' } };
+  // R-1.3: Validate via shared UserPromptInputSchema (control-byte
+  // rejection + 10k cap; preserves shell-meta characters used legitimately
+  // in research goals like "$50k", "(US)", etc.).
+  for (const [name, value] of [
+    ['goal', goal],
+    ['stepTitle', stepTitle],
+    ['stepDescription', stepDescription],
+  ] as const) {
+    const v = UserPromptInputSchema.safeParse(value);
+    if (!v.success) {
+      return {
+        status: 400,
+        body: { error: `${name} invalid: ${v.error.issues[0]?.message ?? 'invalid'}` },
+      };
+    }
   }
 
   if (!(await isLlmAvailable())) {

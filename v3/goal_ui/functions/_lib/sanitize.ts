@@ -40,7 +40,7 @@ import { z } from '@claude-flow/security';
  *   - inputs longer than 10,000 chars (~2,500 words — far above any
  *     legitimate research goal; keeps prompts cheap)
  */
-const UserPromptInputSchema = z
+export const UserPromptInputSchema = z
   .string()
   .max(10_000, 'Input too long')
   // eslint-disable-next-line no-control-regex
