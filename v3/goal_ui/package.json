@@ -29,6 +29,7 @@
     "postbuild": "bash scripts/check-secrets.sh"
   },
   "dependencies": {
+    "@claude-flow/memory": "file:../@claude-flow/memory",
     "@claude-flow/security": "file:../@claude-flow/security",
     "@google-cloud/secret-manager": "^5.6.0",
     "@hono/node-server": "^1.19.14",
