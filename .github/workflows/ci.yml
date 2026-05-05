@@ -162,6 +162,49 @@ jobs:
           node ./v3/@claude-flow/cli/bin/cli.js --version
         continue-on-error: true
 
+      - name: Daemon survives parent exit (Windows, regression #1766)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tmp = Join-Path $env:RUNNER_TEMP 'daemon-1766'
+          if (Test-Path $tmp) { Remove-Item -Recurse -Force $tmp }
+          New-Item -ItemType Directory -Path $tmp | Out-Null
+          $cli = Join-Path $env:GITHUB_WORKSPACE 'v3/@claude-flow/cli/bin/cli.js'
+          if (-not (Test-Path $cli)) { throw "CLI not found at $cli" }
+          Set-Location $tmp
+
+          # Spawn daemon from a child PowerShell that exits immediately after
+          # the spawn returns — this is the npx-wrapper-exits scenario from #1766.
+          $childCmd = "node `"$cli`" daemon start; exit"
+          Start-Process powershell.exe -Wait -NoNewWindow `
+            -ArgumentList '-NoProfile','-Command',$childCmd `
+            -RedirectStandardOutput "$tmp/daemon-start.out" `
+            -RedirectStandardError  "$tmp/daemon-start.err"
+          Get-Content "$tmp/daemon-start.out" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "[start:out] $_" }
+          Get-Content "$tmp/daemon-start.err" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "[start:err] $_" }
+
+          $pidFile = Join-Path $tmp '.claude-flow/daemon.pid'
+          if (-not (Test-Path $pidFile)) {
+            throw "FAIL: pid file $pidFile was never written — daemon failed to start (see [start:err] above; common cause: dist/ missing because npm run build:ts swallowed a tsc error)"
+          }
+          $daemonPid = (Get-Content $pidFile).Trim()
+          Write-Host "Daemon recorded PID = $daemonPid"
+
+          # The original #1766 symptom was death within ~1s. Wait 5s — well past
+          # any plausible delayed-teardown race — then verify the PID is alive.
+          Start-Sleep -Seconds 5
+          $proc = Get-Process -Id $daemonPid -ErrorAction SilentlyContinue
+          if ($null -eq $proc) {
+            throw "FAIL: daemon PID $daemonPid is no longer running 5s after parent exit (regression of #1766)"
+          }
+          Write-Host "PASS: daemon PID $daemonPid alive 5s after parent exit"
+
+          # Cleanup: graceful stop, then force-kill if it lingers.
+          node $cli daemon stop 2>&1 | ForEach-Object { Write-Host "[stop] $_" }
+          Start-Sleep -Seconds 2
+          Get-Process -Id $daemonPid -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.Id -Force }
+
       - name: Package build
         run: |
           npm pack

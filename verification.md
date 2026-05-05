@@ -368,6 +368,45 @@ The capability inventory section below covers the full 300-MCP / 49-CLI / 32-plu
 
 ---
 
+## Post-witness validations
+
+Fixes shipped after the signed manifest above (gitCommit `dba6b54d`) — captured here with file hashes and runtime evidence until the next manifest re-issuance folds them in. Same field shape as the manifest's `fixes[]` entries, plus a `runtime` block proving the fix actually behaves correctly on a real platform (markers alone prove the patch reached `dist/`, not that it works).
+
+### #1766 — daemon survives parent exit on Windows
+
+| Field | Value |
+|---|---|
+| `id` | `#1766` |
+| `desc` | break IPC pipe so background daemon survives parent exit on Windows (`detached: true` on every platform + explicit `child.disconnect()` after `child.unref()`) |
+| `gitCommit` | `69e72d2e4771981538b33ddde18bd902035a54a8` (branch `main`) |
+| `releases` | `@claude-flow/cli@3.7.0-alpha.3`, `claude-flow@3.7.0-alpha.3`, `ruflo@3.7.0-alpha.3` |
+| `sourceFile` | `v3/@claude-flow/cli/src/commands/daemon.ts` |
+| `sourceSha256` | `8d52ffff350c68452760127a7d7dd2c69baee44b102f9dc318a95ae1259bd0dc` |
+| `distFile` | `node_modules/@claude-flow/cli/dist/src/commands/daemon.js` (in `npm install ruflo@3.7.0-alpha.3`) |
+| `distSha256` | `f09d153c3339f3bb341df93bdf2e351a3f911f5478028baefa1c3171a4925c2f` |
+| `markers` | `detached: true` (line 242), `child.disconnect()` (line 286), `#1766` comment block (line 235, 279) |
+| `markerVerified` | `true` |
+
+**Runtime witness (Windows).** Static markers only prove the patch was published; they do not prove it actually keeps the daemon alive. The fix specifically targets a Windows-only IPC-pipe-teardown failure, so the meaningful test is on Windows.
+
+| Field | Value |
+|---|---|
+| `os` | Windows 11 Home 10.0.26200 |
+| `node` | v24.12.0 |
+| `npm` | 11.10.0 |
+| `shell` | `powershell.exe` 5.1 (parent), `node.exe` (daemon child) |
+| `procedure` | (1) `npm install ruflo@3.7.0-alpha.3` in a clean dir. (2) Spawn the daemon from a child PowerShell via `Start-Process powershell.exe -Wait` running `node node_modules/@claude-flow/cli/bin/cli.js daemon start`. (3) Force-terminate that parent shell tree (the npx-wrapper-exits scenario from the bug report). (4) Re-check the recorded daemon PID `N` seconds later. |
+| `daemonPid` | `25532` (read from `.claude-flow/daemon.pid`) |
+| `parentExitedAt` | `16:13:53 local` (parent powershell tree force-killed via `TaskStop`) |
+| `daemonStillAliveAt` | `16:18:00 local` — uptime = **246s** post parent exit (Windows reported `Get-Process -Id 25532` still alive: `StartTime = 05/05/2026 16:13:53`, computed uptime `246.0628487s`) |
+| `failureMode` | The original #1766 symptom was the daemon dying within ~1s of npx exit. Survival past 5s is sufficient evidence the IPC pipe is no longer holding the child to the parent; 246s is well past any plausible delayed-teardown race. |
+| `cleanup` | `node cli.js daemon stop` printed `Worker daemon stopped`; PID 25532 confirmed gone. |
+| `verdict` | **PASS — fix verified on Windows, not merely shipped.** |
+
+**CI lock-in (active).** Added as step `Daemon survives parent exit (Windows, regression #1766)` in the `build` matrix job of `.github/workflows/ci.yml`, gated on `runner.os == 'Windows'` so it runs alongside the existing `Test CLI binary (Windows)` step on every PR. The job exercises the local-built CLI (no `npm install` round-trip — same code path as `npm pack` artifacts), spawns the daemon from a child PowerShell that exits, waits 5s, and fails the build if `Get-Process -Id <pid>` no longer finds the daemon. With this in place, a re-introduction of the IPC-pipe-leak failure mode would turn `Build & Package (windows-latest)` red on the offending PR instead of waiting for a user report.
+
+---
+
 ## Capability inventory (auto-extracted)
 
 Snapshot of every documented capability in this repository at the witnessed git commit. Regenerate with `node scripts/inventory-capabilities.mjs`. The output is sorted + deterministic so this section can be diff-reviewed.
