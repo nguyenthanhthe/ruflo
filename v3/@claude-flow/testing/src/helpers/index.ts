@@ -124,7 +124,15 @@ export {
   type ExecuteResult,
 } from './mock-factory.js';
 
-// Assertion helpers (enhanced)
+// Test cleanup utilities
+export {
+  TestCleanup,
+  createTestCleanup,
+  createCleanupScope,
+  withCleanup,
+  type TestCleanupOptions,
+  type CleanupRegistration,
+} from './test-cleanup.js';
 export {
   assertCalledWithPattern,
   assertEventOrder,

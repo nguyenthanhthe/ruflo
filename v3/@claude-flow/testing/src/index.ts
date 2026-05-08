@@ -168,6 +168,16 @@ export {
 } from './helpers/assertion-helpers.js';
 
 export {
+  // test-cleanup.js
+  TestCleanup,
+  createTestCleanup,
+  createCleanupScope,
+  withCleanup,
+  type TestCleanupOptions,
+  type CleanupRegistration,
+} from './helpers/test-cleanup.js';
+
+export {
   // setup-teardown.js
   createSetupContext,
   getGlobalContext,
